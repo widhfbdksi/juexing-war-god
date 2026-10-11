@@ -1,1 +1,101 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>觉醒吧！战神</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#100d20;color:#fff;font-family:Arial,sans-serif;text-align:center}
+.game{max-width:500px;min-height:100vh;margin:auto;padding:22px 18px;background:radial-gradient(ellipse at 50% 35%,#542c59,#171329 65%,#090914)}
+h1{color:#ffd875;text-shadow:0 0 18px #ff7b24;margin:14px 0}
+.sub{color:#d8c7f5}
+.arena{height:270px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.boss{font-size:100px;filter:drop-shadow(0 0 18px #f44);transition:.2s}
+.boss.hit{transform:scale(1.18);filter:drop-shadow(0 0 30px #ffcc33)}
+.hp{height:16px;background:#4c2938;border:1px solid #ffb0b0;border-radius:20px;overflow:hidden;width:85%;margin:10px auto}
+#hpbar{height:100%;width:100%;background:linear-gradient(90deg,#ff2424,#ff8b43);transition:width .25s}
+#status{color:#ffd875;font-size:20px;font-weight:bold;min-height:30px}
+.meter{height:15px;background:#332c4c;border-radius:20px;overflow:hidden;margin:15px 0}
+#energy{height:100%;width:0;background:linear-gradient(90deg,#38dfff,#c18cff,#ffe37b)}
+button{border:0;border-radius:16px;font-size:20px;font-weight:bold;padding:17px;color:#fff;cursor:pointer}
+#power{width:90%;background:linear-gradient(135deg,#a52cff,#ff5b36);box-shadow:0 0 25px #9b36ff;touch-action:none;user-select:none}
+#restart{margin-top:15px;background:#39314f;font-size:15px;padding:12px 22px}
+.note{font-size:13px;color:#c5badc;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="game">
+<h1>⚔️ 觉醒吧！战神</h1>
+<div class="sub">上古魔王降临 · 唤醒你的神力</div>
+<div class="arena">
+<div id="boss" class="boss">👹</div>
+<div id="bossname">深渊魔王</div>
+<div class="hp"><div id="hpbar"></div></div>
+<div id="hptext">魔王生命：100%</div>
+</div>
+<div id="status">神力尚未觉醒</div>
+<div class="meter"><div id="energy"></div></div>
+<div id="power">✊ 长按蓄力 · 松手释放</div>
+<p class="note">按住按钮积攒神力，松开即可攻击<br>蓄力越久，伤害越高！</p>
+<button id="restart">重新挑战</button>
+<p id="result" class="sub"></p>
+</div>
+<script>
+const power=document.getElementById('power');
+const energy=document.getElementById('energy');
+const boss=document.getElementById('boss');
+const hpbar=document.getElementById('hpbar');
+const hptext=document.getElementById('hptext');
+const status=document.getElementById('status');
+const result=document.getElementById('result');
+let charging=false,start=0,hp=100,timer=null,won=false;
+function begin(e){
+ if(e)e.preventDefault();
+ if(charging||won)return;
+ charging=true;start=Date.now();
+ status.textContent='🔥 神力正在觉醒！';
+ timer=setInterval(()=>{
+ let n=Math.min(100,(Date.now()-start)/20);
+ energy.style.width=n+'%';
+ if(n>=100)status.textContent='⚡ 神力已满！释放！';
+ },30);
+}
+function release(e){
+ if(e)e.preventDefault();
+ if(!charging||won)return;
+ charging=false;clearInterval(timer);
+ let charge=Math.min(100,(Date.now()-start)/20);
+ let damage=Math.max(5,Math.round(charge*0.65));
+ hp=Math.max(0,hp-damage);
+ energy.style.width='0%';
+ boss.classList.add('hit');
+ boss.textContent=charge>75?'🐲':'👹';
+ status.textContent=charge>75?'🌩️ 战神·灭世神雷！':'💥 神力冲击！';
+ hpbar.style.width=hp+'%';
+ hptext.textContent='魔王生命：'+hp+'%';
+ setTimeout(()=>boss.classList.remove('hit'),250);
+ if(hp===0){
+ won=true;boss.textContent='💀';status.textContent='🏆 战神觉醒！魔王已被击败！';
+ result.textContent='你已获得战神称号！';
+ power.textContent='挑战成功';
+ }else{
+ result.textContent='造成 '+damage+' 点伤害！继续攻击魔王！';
+ }
+}
+power.addEventListener('pointerdown',begin);
+power.addEventListener('pointerup',release);
+power.addEventListener('pointercancel',release);
+power.addEventListener('contextmenu',e=>e.preventDefault());
+document.getElementById('restart').onclick=()=>{
+ clearInterval(timer);charging=false;hp=100;won=false;
+ energy.style.width='0%';hpbar.style.width='100%';
+ hptext.textContent='魔王生命：100%';boss.textContent='👹';
+ status.textContent='神力尚未觉醒';result.textContent='';
+ power.textContent='✊ 长按蓄力 · 松手释放';
+};
+</script>
+</body>
+</html>
+
